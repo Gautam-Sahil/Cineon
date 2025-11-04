@@ -6,7 +6,7 @@ import AuditLog from "../model/AuditLog.js";
 export const inngest = new Inngest({ id: "movie-ticket-booking" });
 
 /**
- * 🧩 Helper: Log audit entries
+ * Helper to write audit logs
  */
 async function logAudit({ eventName, functionName, userId, status, message, data, error }) {
   try {
@@ -25,20 +25,18 @@ async function logAudit({ eventName, functionName, userId, status, message, data
 }
 
 /**
- * 🧩 Function: Create user in MongoDB when created in Clerk
+ * Clerk user.created → create MongoDB user
  */
 const syncUserCreation = inngest.createFunction(
   { id: "sync-user-from-clerk", name: "Sync user from Clerk (Create)" },
   { event: "clerk/user.created" },
-  async ({ event, step }) => {
+  async ({ event }) => {
     const { id, first_name, last_name, email_addresses, image_url } = event.data;
-
     const email = email_addresses?.[0]?.email_address;
     const name = `${first_name || ""} ${last_name || ""}`.trim();
 
     try {
       if (!email) {
-        await step.log("No email found for user, skipping creation");
         await logAudit({
           eventName: event.name,
           functionName: "sync-user-from-clerk",
@@ -52,7 +50,6 @@ const syncUserCreation = inngest.createFunction(
 
       const existingUser = await User.findById(id);
       if (existingUser) {
-        await step.log("User already exists, skipping creation");
         await logAudit({
           eventName: event.name,
           functionName: "sync-user-from-clerk",
@@ -92,14 +89,13 @@ const syncUserCreation = inngest.createFunction(
 );
 
 /**
- * 🧩 Function: Update user in MongoDB when updated in Clerk
+ * Clerk user.updated → update MongoDB user
  */
 const syncUserUpdation = inngest.createFunction(
   { id: "update-user-from-clerk", name: "Sync user from Clerk (Update)" },
   { event: "clerk/user.updated" },
-  async ({ event, step }) => {
+  async ({ event }) => {
     const { id, first_name, last_name, email_addresses, image_url } = event.data;
-
     const email = email_addresses?.[0]?.email_address;
     const name = `${first_name || ""} ${last_name || ""}`.trim();
 
@@ -111,7 +107,6 @@ const syncUserUpdation = inngest.createFunction(
       });
 
       if (!updated) {
-        await step.log("User not found, creating instead");
         await User.create({ _id: id, ...userData });
         await logAudit({
           eventName: event.name,
@@ -150,19 +145,18 @@ const syncUserUpdation = inngest.createFunction(
 );
 
 /**
- * 🧩 Function: Delete user in MongoDB when deleted in Clerk
+ * Clerk user.deleted → delete MongoDB user
  */
 const syncUserDeletion = inngest.createFunction(
   { id: "delete-user-with-clerk", name: "Delete user from Clerk" },
   { event: "clerk/user.deleted" },
-  async ({ event, step }) => {
+  async ({ event }) => {
     const { id } = event.data;
 
     try {
       const deleted = await User.findByIdAndDelete(id);
 
       if (!deleted) {
-        await step.log("User not found, nothing to delete");
         await logAudit({
           eventName: event.name,
           functionName: "delete-user-with-clerk",
@@ -196,8 +190,4 @@ const syncUserDeletion = inngest.createFunction(
   }
 );
 
-export const functions = [
-  syncUserCreation,
-  syncUserUpdation,
-  syncUserDeletion,
-];
+export const functions = [syncUserCreation, syncUserUpdation, syncUserDeletion];
