@@ -1,9 +1,10 @@
 import { Inngest } from "inngest";
+import connectDB from "../config/db.js";
 import User from "../model/User.js";
 import AuditLog from "../model/AuditLog.js";
 import Booking from "../model/Bookings.js";
 import Show from "../model/Show.js";
-import { model } from "mongoose";
+
 import { sendEmail } from "../config/emailservice.js";
 
 // Initialize Inngest client
@@ -230,25 +231,33 @@ const bookingEmailHandler = inngest.createFunction(
     id: "booking-email-professional",
     name: "Booking Email Notifications (Professional)",
   },
-  { event: "app/booking.*" },
+  {
+    event: "app/booking.*",
+  },
   async ({ event, step }) => {
-    const { bookingId } = event.data;
-    const booking = await Booking.findById(bookingId).populate("user show");
+    // 🔹 Connect to MongoDB first
+    await connectDB();
 
+    const { bookingId } = event.data;
+
+    // 🔹 Fetch booking and populate user + show
+    const booking = await Booking.findById(bookingId).populate("user show");
     if (!booking) return;
 
-    const user = await User.findById(booking.user._id);
-    const show = await Show.findById(booking.show._id).populate("movie");
-
+    const user = booking.user;
+    const show = booking.show;
     if (!user || !show) return;
 
     const seats = booking.bookedSeats.join(", ");
     const showTime = new Date(show.showDateTime).toLocaleString();
 
-    const htmlHeader = `<div style="font-family: Arial, sans-serif; max-width:600px; margin:auto;">`;
-    const htmlFooter = `<p style="color: gray; font-size:12px;">This is an automated email from Movie Ticket Booking App. Do not reply.</p></div>`;
+    // Common HTML header/footer
+    const htmlHeader = `<div style="font-family: Arial, sans-serif; max-width: 600px; margin:auto;">`;
+    const htmlFooter = `<p style="color: gray; font-size: 12px;">This is an automated email from Movie Ticket Booking App. Do not reply.</p></div>`;
 
-    // ================== Pending Payment ==================
+    // ----------------------
+    // 1️⃣ Pending payment email
+    // ----------------------
     if (event.name === "app/booking.created") {
       const subject = "🎬 Your Booking is Pending Payment";
       const html = `
@@ -258,6 +267,7 @@ const bookingEmailHandler = inngest.createFunction(
         <p>Your booking for <strong>${show.movie.title}</strong> on <strong>${showTime}</strong> is pending payment.</p>
         <p><strong>Seats:</strong> ${seats}</p>
         <p><strong>Amount:</strong> $${booking.amount.toFixed(2)}</p>
+        <img src="${show.movie.poster_path}" alt="${show.movie.title}" style="width:150px; border-radius:8px; margin-top:10px;">
         <p style="margin-top:15px;">
           <a href="${booking.paymentLink}" style="display:inline-block; background:#1E3A8A; color:white; padding:10px 20px; border-radius:5px; text-decoration:none;">
             Pay Now
@@ -267,37 +277,45 @@ const bookingEmailHandler = inngest.createFunction(
       `;
       await sendEmail({ to: user.email, subject, html });
 
-      // ================== Schedule 10-min payment check ==================
+      // ----------------------
+      // 2️⃣ Schedule 10-minute auto-check
+      // ----------------------
       const tenMinutesLater = new Date(Date.now() + 10 * 60 * 1000);
       await step.sleepUntil("wait-10-minutes", tenMinutesLater);
 
       await step.run("check-payment", async () => {
-        const updatedBooking = await Booking.findById(bookingId);
-        if (!updatedBooking?.isPaid) {
-          // Release seats
-          updatedBooking.bookedSeats.forEach(seat => delete show.occupiedSeats[seat]);
-          show.markModified("occupiedSeats");
-          await show.save();
+        const updatedBooking = await Booking.findById(bookingId).populate("user show");
+        if (!updatedBooking || updatedBooking.isPaid) return;
 
-          await Booking.findByIdAndDelete(bookingId);
+        // Release seats
+        updatedBooking.bookedSeats.forEach(seat => {
+          delete show.occupiedSeats[seat];
+        });
+        show.markModified("occupiedSeats");
+        await show.save();
 
-          // ================== Canceled Email ==================
-          const cancelSubject = "❌ Booking Canceled";
-          const cancelHtml = `
-            ${htmlHeader}
-            <h2 style="color:#B91C1C;">Booking Canceled</h2>
-            <p>Hi ${user.name},</p>
-            <p>Your booking for <strong>${show.movie.title}</strong> on <strong>${showTime}</strong> was canceled due to nonpayment.</p>
-            <p><strong>Seats:</strong> ${seats}</p>
-            <p>If you still want to watch, please book again!</p>
-            ${htmlFooter}
-          `;
-          await sendEmail({ to: user.email, subject: cancelSubject, html: cancelHtml });
-        }
+        // Delete booking
+        await Booking.findByIdAndDelete(bookingId);
+
+        // Send cancellation email
+        const cancelSubject = "❌ Booking Canceled";
+        const cancelHtml = `
+          ${htmlHeader}
+          <h2 style="color:#B91C1C;">Booking Canceled</h2>
+          <p>Hi ${user.name},</p>
+          <p>Your booking for <strong>${show.movie.title}</strong> on <strong>${showTime}</strong> was canceled due to nonpayment.</p>
+          <p><strong>Seats:</strong> ${seats}</p>
+          <p>If you still want to watch, please book again!</p>
+          <img src="${show.movie.poster_path}" alt="${show.movie.title}" style="width:150px; border-radius:8px; margin-top:10px;">
+          ${htmlFooter}
+        `;
+        await sendEmail({ to: user.email, subject: cancelSubject, html: cancelHtml });
       });
     }
 
-    // ================== Payment Confirmed ==================
+    // ----------------------
+    // 3️⃣ Payment confirmed email
+    // ----------------------
     if (event.name === "app/booking.paid") {
       const subject = "✅ Booking Confirmed!";
       const html = `
@@ -307,6 +325,7 @@ const bookingEmailHandler = inngest.createFunction(
         <p>Your booking for <strong>${show.movie.title}</strong> on <strong>${showTime}</strong> is confirmed.</p>
         <p><strong>Seats:</strong> ${seats}</p>
         <p><strong>Amount Paid:</strong> $${booking.amount.toFixed(2)}</p>
+        <img src="${show.movie.poster_path}" alt="${show.movie.title}" style="width:150px; border-radius:8px; margin-top:10px;">
         <p>Enjoy the movie! 🍿</p>
         ${htmlFooter}
       `;
