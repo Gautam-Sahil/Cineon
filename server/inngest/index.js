@@ -196,33 +196,37 @@ const syncUserDeletion = inngest.createFunction(
 );
 
 //ingest function to cancel booking and releases seats of show after 10 minutes of bookng crewted if pwyment is not done
-
-const releaseSeatsAndDeleteBooking = inngest.createFunction({
-  id:'release-seats-delete-booking'
-},
-{
-  event:"app/checkpayment"
-},
-async({ event, step})=>{
-  const tenminutelater = new Date(Date.now() + 10 * 60 * 1000);
-  await step.sleepUntil('wait-for-10-minutes', tenminutelater);
-
-  await step.run('check-payment-status', async ()=>{
+const releaseSeatsAndDeleteBooking = inngest.createFunction(
+  { id: "release-seats-delete-booking" },
+  { event: "app/checkpayment" },
+  async ({ event, step }) => {
     const bookingId = event.data.bookingId;
-    const booking = await Booking.findById(bookingId)
+    const booking = await Booking.findById(bookingId);
 
-    //if pyment is not made, realease seats and and delte booking
-    if(!booking.isPaid){
-      const show = await Show.findById(booking.show);
-      booking.bookedSeats.forEach((seat) => {
-        delete show.occupiedSeats[seat]
-      });
-      show.markModified('occupiedSeats')
-      await show.save()
-      await Booking.findOneAndDelete(booking._id)
+    // ✅ If already paid, do nothing immediately
+    if (!booking || booking.isPaid) {
+      console.log(`Booking ${bookingId} is already paid or missing, skipping.`);
+      return;
     }
-  })
-})
+
+    // Wait 10 minutes before checking again
+    const tenMinutesLater = new Date(Date.now() + 10 * 60 * 1000);
+    await step.sleepUntil("wait-for-10-minutes", tenMinutesLater);
+
+    await step.run("check-payment-status", async () => {
+      const latestBooking = await Booking.findById(bookingId);
+      if (!latestBooking || latestBooking.isPaid) return;
+
+      const show = await Show.findById(latestBooking.show);
+      latestBooking.bookedSeats.forEach((seat) => {
+        delete show.occupiedSeats[seat];
+      });
+      show.markModified("occupiedSeats");
+      await show.save();
+      await Booking.findByIdAndDelete(latestBooking._id);
+    });
+  }
+);
 
 
 
