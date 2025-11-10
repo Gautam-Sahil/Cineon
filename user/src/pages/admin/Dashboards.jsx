@@ -1,12 +1,16 @@
 import React, { useEffect, useState } from 'react'
-import { dummyDashboardData } from '../../assets/assets'
+
 import Loading from '../../components/Loading'
 import Title from '../../components/admin/Title'
 import BlueCircle from '../../components/BlueCircle'
 import { ChartLineIcon, CircleDollarSign, PlayCircle, StarIcon, UserIcon } from 'lucide-react'
 import { dateFormat } from '../../library/dateFormat'
+import { useAppContext } from '../../context/Appcontext'
+import { toast } from 'sonner'
 
 const Dashboards = () => {
+
+    const { axios, getToken, user } = useAppContext();
   const currency = import.meta.env.VITE_CURRENCY_SYMBOL || '$'
 
   const [DashboardData, setDashboardData] = useState({
@@ -44,14 +48,34 @@ const Dashboards = () => {
     },
   ]
 
-  const fetchDashboardData = async () => {
-    setDashboardData(dummyDashboardData)
-    setLoading(false)
+const fetchDashboardData = async () => {
+  try {
+    const { data } = await axios.get("/api/admin/dashboard", {
+      headers: { Authorization: `Bearer ${await getToken()}` },
+    });
+
+   if (data.success) {
+  console.log('🧩 Dashboard Data:', data.dashboardata); // <— add this
+  setDashboardData(data.dashboardata);
+}
+ else {
+      toast.error(data.message || 'Failed to fetch dashboard data');
+    }
+  } catch (error) {
+    console.error(error);
+    toast.error('Error fetching dashboard data');
+  } finally {
+    setLoading(false);
   }
+};
+
 
   useEffect(() => {
-    fetchDashboardData()
-  }, [])
+    if(user){
+       fetchDashboardData()
+    }
+   
+  }, [user])
 
   if (loading) return <Loading />
 
@@ -82,40 +106,50 @@ const Dashboards = () => {
       <p className="mt-10 text-lg font-semibold text-gray-700">Active Shows</p>
       <div className="relative flex flex-wrap gap-6 mt-4 max-w-6xl">
         <BlueCircle top="100px" left="-10%" />
-        {DashboardData.activeShows.length === 0 ? (
-          <p className="text-gray-500 mt-4">No active shows available.</p>
-        ) : (
-          DashboardData.activeShows.map((show) => (
-            <div
-              key={show._id}
-              className="w-56 rounded-lg overflow-hidden bg-gradient-to-br from-primary/10 to-primary/5 
-              border border-primary/20 hover:-translate-y-1 hover:shadow-md transition duration-300"
-            >
-              <img
-                src={show.movie.poster_path}
-                alt={show.movie.title}
-                className="h-60 w-full object-cover"
-              />
-              <div className="p-2">
-                <p className="font-medium truncate text-gray-800">{show.movie.title}</p>
+       {DashboardData.activeShows.length === 0 ? (
+  <p className="text-gray-500 mt-4">No active shows available.</p>
+) : (
+  DashboardData.activeShows.map((show) => {
+    const movie = show.movie;
 
-                <div className="flex items-center justify-between mt-1">
-                  <p className="text-sm font-medium text-primary">
-                    {currency} {show.showPrice}
-                  </p>
-                  <p className="flex items-center gap-1 text-sm text-gray-500">
-                    <StarIcon className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                    {show.movie.vote_average?.toFixed(1)}
-                  </p>
-                </div>
+    return (
+      <div
+        key={show._id || movie?.trakt_id}
+        className="w-56 rounded-lg overflow-hidden bg-gradient-to-br from-primary/10 to-primary/5 
+        border border-primary/20 hover:-translate-y-1 hover:shadow-md transition duration-300"
+      >
+        {/* Movie Poster */}
+        <img
+          src={movie?.poster_path || "/placeholder.jpg"} // fallback if missing
+          alt={movie?.title || "Untitled Movie"}
+          className="h-60 w-full object-cover"
+        />
 
-                <p className="text-xs text-gray-400 mt-1">
-                  {dateFormat(show.showDateTime)}
-                </p>
-              </div>
-            </div>
-          ))
-        )}
+        <div className="p-2">
+          {/* Movie Title */}
+          <p className="font-medium truncate ">{movie?.title || "Untitled Movie"}</p>
+
+          {/* Price & Rating */}
+          <div className="flex items-center justify-between mt-1">
+            <p className="text-sm font-medium text-primary">
+              {currency} {show.showPrice || 0}
+            </p>
+            <p className="flex items-center gap-1 text-sm text-gray-500">
+              <StarIcon className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+              {movie?.votes?.toFixed(0) || "N/A"}
+            </p>
+          </div>
+
+          {/* Show Date */}
+          <p className="text-xs text-gray-400 mt-1">
+            {show.showDateTime ? dateFormat(show.showDateTime) : "Date not available"}
+          </p>
+        </div>
+      </div>
+    );
+  })
+)}
+
       </div>
     </>
   )

@@ -5,9 +5,9 @@ import AuditLog from "../model/AuditLog.js";
 // Initialize Inngest client
 export const inngest = new Inngest({ id: "movie-ticket-booking" });
 
-/**
- * Helper to write audit logs
- */
+
+//  Helper to write audit logs
+ 
 async function logAudit({ eventName, functionName, userId, status, message, data, error }) {
   try {
     await AuditLog.create({

@@ -1,24 +1,41 @@
 import React, { useEffect, useState } from 'react'
-import { dummyBookingData } from '../assets/assets';
 import Loading from '../components/Loading';
 import BlueCircle from '../components/BlueCircle';
 import timeFormat from '../library/timeFormat';
 import { dateFormat } from '../library/dateFormat';
+import { useAppContext } from '../context/Appcontext';
 
 const MyBookings = () => {
   const currency = import.meta.env.VITE_CURRENCY 
 
+    const { axios, getToken, user, } =
+      useAppContext();
+
   const [bookings, setBookings] = useState([])
   const [isLoading, setIsLoading] = useState(true)
+const getMyBookings = async () => {
+  try {
+    const { data } = await axios.get('/api/user/bookings', {
+      headers: { Authorization: `Bearer ${await getToken()}` },
+    });
 
-  const getMyBookings = async () => {
-    setBookings(dummyBookingData)
-    setIsLoading(false)
+    if (data.success) {
+      setBookings(data.bookings);
+    }
+  } catch (error) {
+    console.log(error);
+  } finally {
+    setIsLoading(false); // ✅ move it here
   }
+};
+
 
   useEffect(() => {
-    getMyBookings()
-  }, [])
+    if(user){
+         getMyBookings()
+    }
+ 
+  }, [user])
   return !isLoading ? (
     <div className='relative px-6 md:px-16 lg:px-40 pt-30 md:pt-40 min-h-[80vh]'>
 

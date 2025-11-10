@@ -4,11 +4,7 @@ const auditLogSchema = new mongoose.Schema(
   {
     eventName: { type: String, required: true },  // e.g. clerk/user.created
     functionName: { type: String, required: true }, // e.g. sync-user-from-clerk
-    userId: { type: String,  required: true },
-      _id: {type: String, required: true},
-      name: {type: String, required: true},
-    email: {type: String, required: true},
-    image: {type: String, required: true},
+    userId: { type: String },
     status: { type: String, enum: ["success", "error"], default: "success" },
     message: { type: String },
     data: { type: Object }, // raw event or extra info
@@ -17,4 +13,4 @@ const auditLogSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-export default mongoose.models.AuditLog || mongoose.model("AuditLog", auditLogSchema);
+export default mongoose.model.AuditLog || mongoose.model("AuditLog", auditLogSchema);
