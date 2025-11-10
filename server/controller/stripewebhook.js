@@ -1,5 +1,6 @@
 import Stripe from "stripe";
 import Booking from "../model/Bookings.js";
+import { inngest } from "../inngest/index.js";
 
 export const stripeWebhooks = async (req, res) => {
   const stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY);
@@ -42,8 +43,11 @@ export const stripeWebhooks = async (req, res) => {
           paymentLink: "",
         });
 
-        console.log(`✅ Booking ${bookingId} marked as paid.`);
-        break;
+     await inngest.send({
+  name: "app/booking.paid",
+  data: { bookingId }
+});
+
       }
 
       default:

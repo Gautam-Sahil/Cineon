@@ -3,6 +3,8 @@ import User from "../model/User.js";
 import AuditLog from "../model/AuditLog.js";
 import Booking from "../model/Bookings.js";
 import Show from "../model/Show.js";
+import { model } from "mongoose";
+import { sendEmail } from "../config/emailservice.js";
 
 // Initialize Inngest client
 export const inngest = new Inngest({ id: "movie-ticket-booking" });
@@ -221,6 +223,102 @@ async({ event, step})=>{
   })
 })
 
-export const functions = [syncUserCreation, syncUserUpdation, syncUserDeletion,
-  releaseSeatsAndDeleteBooking
+
+
+const bookingEmailHandler = inngest.createFunction(
+  {
+    id: "booking-email-professional",
+    name: "Booking Email Notifications (Professional)",
+  },
+  { event: "app/booking.*" },
+  async ({ event, step }) => {
+    const { bookingId } = event.data;
+    const booking = await Booking.findById(bookingId).populate("user show");
+
+    if (!booking) return;
+
+    const user = await User.findById(booking.user._id);
+    const show = await Show.findById(booking.show._id).populate("movie");
+
+    if (!user || !show) return;
+
+    const seats = booking.bookedSeats.join(", ");
+    const showTime = new Date(show.showDateTime).toLocaleString();
+
+    const htmlHeader = `<div style="font-family: Arial, sans-serif; max-width:600px; margin:auto;">`;
+    const htmlFooter = `<p style="color: gray; font-size:12px;">This is an automated email from Movie Ticket Booking App. Do not reply.</p></div>`;
+
+    // ================== Pending Payment ==================
+    if (event.name === "app/booking.created") {
+      const subject = "🎬 Your Booking is Pending Payment";
+      const html = `
+        ${htmlHeader}
+        <h2 style="color:#1E3A8A;">Booking Pending</h2>
+        <p>Hi ${user.name},</p>
+        <p>Your booking for <strong>${show.movie.title}</strong> on <strong>${showTime}</strong> is pending payment.</p>
+        <p><strong>Seats:</strong> ${seats}</p>
+        <p><strong>Amount:</strong> $${booking.amount.toFixed(2)}</p>
+        <p style="margin-top:15px;">
+          <a href="${booking.paymentLink}" style="display:inline-block; background:#1E3A8A; color:white; padding:10px 20px; border-radius:5px; text-decoration:none;">
+            Pay Now
+          </a>
+        </p>
+        ${htmlFooter}
+      `;
+      await sendEmail({ to: user.email, subject, html });
+
+      // ================== Schedule 10-min payment check ==================
+      const tenMinutesLater = new Date(Date.now() + 10 * 60 * 1000);
+      await step.sleepUntil("wait-10-minutes", tenMinutesLater);
+
+      await step.run("check-payment", async () => {
+        const updatedBooking = await Booking.findById(bookingId);
+        if (!updatedBooking?.isPaid) {
+          // Release seats
+          updatedBooking.bookedSeats.forEach(seat => delete show.occupiedSeats[seat]);
+          show.markModified("occupiedSeats");
+          await show.save();
+
+          await Booking.findByIdAndDelete(bookingId);
+
+          // ================== Canceled Email ==================
+          const cancelSubject = "❌ Booking Canceled";
+          const cancelHtml = `
+            ${htmlHeader}
+            <h2 style="color:#B91C1C;">Booking Canceled</h2>
+            <p>Hi ${user.name},</p>
+            <p>Your booking for <strong>${show.movie.title}</strong> on <strong>${showTime}</strong> was canceled due to nonpayment.</p>
+            <p><strong>Seats:</strong> ${seats}</p>
+            <p>If you still want to watch, please book again!</p>
+            ${htmlFooter}
+          `;
+          await sendEmail({ to: user.email, subject: cancelSubject, html: cancelHtml });
+        }
+      });
+    }
+
+    // ================== Payment Confirmed ==================
+    if (event.name === "app/booking.paid") {
+      const subject = "✅ Booking Confirmed!";
+      const html = `
+        ${htmlHeader}
+        <h2 style="color:#047857;">Booking Confirmed</h2>
+        <p>Hi ${user.name},</p>
+        <p>Your booking for <strong>${show.movie.title}</strong> on <strong>${showTime}</strong> is confirmed.</p>
+        <p><strong>Seats:</strong> ${seats}</p>
+        <p><strong>Amount Paid:</strong> $${booking.amount.toFixed(2)}</p>
+        <p>Enjoy the movie! 🍿</p>
+        ${htmlFooter}
+      `;
+      await sendEmail({ to: user.email, subject, html });
+    }
+  }
+);
+
+export const functions = [
+  syncUserCreation,
+  syncUserUpdation,
+  syncUserDeletion,
+  releaseSeatsAndDeleteBooking,
+  bookingEmailHandler,
 ];

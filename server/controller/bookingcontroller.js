@@ -89,6 +89,14 @@ export const createBooking = async (req, res) => {
     booking.paymentLink = session.url;
     await booking.save();
 
+
+    // 6️⃣ Send Inngest event to trigger email notifications
+    await inngest.send({
+      name: "app/booking.created",
+      data: { bookingId: booking._id.toString() },
+    });
+
+    
     // run ingest sheduler funtion to check payment stauts after 10 minutes
     await inngest.send({
       name: "app/checkpayment",
