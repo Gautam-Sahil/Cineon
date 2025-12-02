@@ -2,8 +2,57 @@ import axios from "axios";
 import Movie from "../model/Movie.js";
 import Show from "../model/Show.js";
 
-// ========== Helper: Get movie cast ==========
-const getMovieCast = async (slug) => {
+// --- New Helper: Get Cast with Real Images from TMDB ---
+const getCastWithImages = async (traktSlug) => {
+  try {
+    // 1. Get detailed movie data from Trakt to find external IDs (specifically TMDB ID)
+    const { data: traktData } = await axios.get(
+      `https://api.trakt.tv/movies/${traktSlug}?extended=full,images`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "trakt-api-version": "2",
+          "trakt-api-key": process.env.TRAKT_API_KEY,
+        },
+      }
+    );
+
+    const tmdbId = traktData.ids.tmdb;
+    if (!tmdbId) {
+      console.warn(`TMDB ID not found for Trakt movie: ${traktSlug}`);
+      // Fallback: Get names only from Trakt (with 10 limit)
+      return getTraktCastNames(traktSlug, 10); 
+    }
+
+    // 2. Fetch cast details from TMDB using the TMDB ID
+    const { data: tmdbCastData } = await axios.get(
+      `https://api.themoviedb.org/3/movie/${tmdbId}/credits`,
+      {
+        params: {
+          api_key: process.env.TMDB_API_KEY, // Ensure this is set
+        },
+      }
+    );
+
+    // 3. Extract the top 10 cast members with their names and image paths
+    const cast = tmdbCastData.cast || [];
+    const baseImageUrl = "https://image.tmdb.org/t/p/w185"; // A good size for cast images
+
+    return cast.slice(0, 10).map((c) => ({
+      name: String (c.name),
+      character: c.character,
+      image: c.profile_path ? `${baseImageUrl}${c.profile_path}` : null, // Null if no image
+    }));
+
+  } catch (err) {
+    console.error(`Cast fetch failed for ${traktSlug}:`, err.message);
+    // Fallback in case of TMDB error: get names only from Trakt (with 10 limit)
+    return getTraktCastNames(traktSlug, 10);
+  }
+};
+
+// --- Trakt Cast Helper (Fallback and utility) ---
+const getTraktCastNames = async (slug, limit = 5) => {
   try {
     const { data } = await axios.get(
       `https://api.trakt.tv/movies/${slug}/people`,
@@ -15,12 +64,18 @@ const getMovieCast = async (slug) => {
         },
       }
     );
-    return data.cast?.slice(0, 5).map((c) => c.person.name) || [];
+    // Return an array of objects for consistent structure
+    return data.cast?.slice(0, limit).map((c) => ({
+    name: String(c.name),
+      character: c.character, // Trakt provides character name too
+      image: null // No image from Trakt
+    })) || [];
   } catch (err) {
-    console.error(`Cast fetch failed for ${slug}:`, err.message);
+    console.error(`Trakt fallback cast fetch failed for ${slug}:`, err.message);
     return [];
   }
 };
+
 
 // ========== Helper: Extract Trakt images safely ==========
 const getTraktImageUrls = (images = {}) => {
@@ -59,7 +114,10 @@ export const getNowPlayingMovies = async (req, res) => {
     const movies = await Promise.all(
       data.map(async (item) => {
         const movie = item.movie;
-        const cast = await getMovieCast(movie.ids.slug);
+        
+        // 🚨 IMPORTANT: Use the new helper here
+        const cast = await getCastWithImages(movie.ids.slug); 
+
         const { poster_path, backdrop } = getTraktImageUrls(movie.images);
 
         return {
@@ -98,6 +156,7 @@ export const addShow = async (req, res) => {
     let movie = await Movie.findOne({ trakt_id: movieId });
 
     if (!movie) {
+      // Fetch from Trakt if not in DB
       const { data: traktMovieData } = await axios.get(
         `https://api.trakt.tv/movies/${movieId}?extended=full,images`,
         {
@@ -109,7 +168,9 @@ export const addShow = async (req, res) => {
         }
       );
 
-      const cast = await getMovieCast(traktMovieData.ids.slug);
+      // 🚨 IMPORTANT: Use the new helper here
+      const cast = await getCastWithImages(traktMovieData.ids.slug); 
+
       const { poster_path, backdrop } = getTraktImageUrls(
         traktMovieData.images
       );
@@ -164,6 +225,7 @@ export const addShow = async (req, res) => {
 
 // ========== GET All Upcoming Shows ==========
 export const getShows = async (req, res) => {
+  // ... (rest of the code remains the same)
   try {
     const shows = await Show.find({ showDateTime: { $gte: new Date() } })
       .populate("movie")
@@ -185,6 +247,7 @@ export const getShows = async (req, res) => {
 
 // ========== GET Single Movie's Shows ==========
 export const getShow = async (req, res) => {
+  // ... (rest of the code remains the same)
   try {
     const { movieId } = req.params;
 
@@ -204,6 +267,18 @@ export const getShow = async (req, res) => {
     res.json({ success: true, movie, dateTime });
   } catch (error) {
     console.error("Get show error:", error.message);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// showController.js
+export const getAllMovies = async (req, res) => {
+  // ... (rest of the code remains the same)
+  try {
+    const movies = await Movie.find({}).sort({ released: -1 });
+    res.json({ success: true, movies });
+  } catch (error) {
+    console.error("Error fetching all movies:", error.message);
     res.status(500).json({ success: false, message: error.message });
   }
 };

@@ -245,7 +245,13 @@ const bookingEmailHandler = inngest.createFunction(
     const { bookingId } = event.data;
 
     // 🔹 Fetch booking and populate user + show
-    const booking = await Booking.findById(bookingId).populate("user show");
+   const booking = await Booking.findById(bookingId)
+  .populate({
+    path: "show",
+    populate: { path: "movie" },
+  })
+  .populate("user");
+
     if (!booking) return;
 
     const user = booking.user;
