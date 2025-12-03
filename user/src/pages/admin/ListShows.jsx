@@ -4,7 +4,8 @@ import Title from '../../components/admin/Title'
 import BlueCircle from '../../components/BlueCircle'
 import { CalendarDays, TicketIcon, StarIcon, DollarSign } from 'lucide-react'
 import { dateFormat } from '../../library/dateFormat'
-import { useAppContext } from '../../context/Appcontext'
+import { useAppContext } from '../../context/AppContext'
+
 
 const ListShows = () => {
 

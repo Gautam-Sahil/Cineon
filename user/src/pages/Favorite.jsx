@@ -3,7 +3,7 @@ import MovieCard from '../components/MovieCard'
 import BlueCircle from './../components/BlueCircle';
 
 import Movies from './Movies';
-import { useAppContext } from '../context/Appcontext';
+import { useAppContext } from './context/AppContext'
 
 const Favorite = () => {
 

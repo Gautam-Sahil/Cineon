@@ -6,7 +6,7 @@ import timeFormat from "../library/timeFormat";
 import DateSelect from "../components/DateSelect";
 import MovieCard from "../components/MovieCard";
 import Loading from "../components/Loading";
-import { useAppContext } from "../context/Appcontext";
+import { useAppContext } from './context/AppContext'
 import { toast } from "sonner";
 
 const Tickets = () => {

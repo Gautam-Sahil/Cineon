@@ -5,7 +5,8 @@ import Title from '../../components/admin/Title'
 import BlueCircle from '../../components/BlueCircle'
 import { ChartLineIcon, CircleDollarSign, PlayCircle, StarIcon, UserIcon } from 'lucide-react'
 import { dateFormat } from '../../library/dateFormat'
-import { useAppContext } from '../../context/Appcontext'
+import { useAppContext } from '../../context/AppContext'
+
 import { toast } from 'sonner'
 
 const Dashboards = () => {

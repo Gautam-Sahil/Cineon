@@ -6,7 +6,8 @@ import { CheckIcon, StarIcon, CalendarDays } from 'lucide-react';
 import { kConverter } from '../../library/kConverter';
 import DateTimeSelector from './DateTimeSelector';
 import ShowPriceInput from './ShowPriceInput';
-import { useAppContext } from '../../context/Appcontext';
+import { useAppContext } from '../../context/AppContext'
+
 
 const AddShow = () => {
   const { axios, getToken, user } = useAppContext();
