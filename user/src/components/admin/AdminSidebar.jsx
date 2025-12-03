@@ -1,18 +1,16 @@
 import React from 'react'
-import { assets } from '../../assets/assets'
+import Adminimage from '../../assets/boy1.png'
 import { LayoutDashboardIcon, ListCollapseIcon, ListIcon, PlusSquareIcon, StarIcon } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
-import BlueCircle from '../BlueCircle'
-import Dashboards from '../../pages/admin/Dashboards'
-import Title from './Title';
+
 
 
 const AdminSidebar = () => {
 
     const user = {
         firtname: 'Admin',
-        lastname: 'User',
-        imageUrl: assets.profile,
+        lastname: 'Gautam',
+        imageUrl: Adminimage,
     }
    
      const adminNavLinks = [
@@ -24,11 +22,11 @@ const AdminSidebar = () => {
   return (
 
     <div className=' h-[calc(100vh-64px)] md:flex flex-col items-center pt-8 max-w-13 md:max-w-60 w-full border-r border-gray-300/30 text-sm '>
-     <img className='h-9 md:h-14 w-9 md:w-14 rounded-full mx-auto' src={user.imageUrl} alt={`${user.firtname} ${user.lastname}`} />
+     <img className='h-14 md:h-25 w-16 md:w-25 rounded-full mx-auto' src={user.imageUrl} alt={`${user.firtname} ${user.lastname}`} />
      <p className='mt-2 text-base max-md:hidden'>{user.firtname} {user.lastname}</p>
      <div className='w-full'>
         {adminNavLinks.map((link, index) =>(
-            <NavLink key={index} to={link.path} end className={({ isActive }) => `relative flex items-center max-md:justify-center gap-2 w-full py-2.5 min-md:pl-10 first:mt-6 text-gray-400 ${isActive && 'bg-primary/15 text-primary group'}`}>
+            <NavLink key={index} to={link.path} end className={({ isActive }) => `relative flex items-center max-md:justify-center gap-2 w-full py-2.5 min-md:pl-10 first:mt-6 text-slate-300 ${isActive && 'bg-primary/15 text-primary group'}`}>
               {({ isActive }) => (
                 <>
                 <link.icon className='w-5 h-5' />      

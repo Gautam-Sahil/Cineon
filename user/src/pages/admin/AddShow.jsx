@@ -134,7 +134,7 @@ const handleAddShow = async () => {
                 />
                 <div className="absolute bottom-0 left-0 w-full bg-black/60 p-2 flex items-center justify-between text-xs text-gray-300">
                   <p className="flex items-center gap-1">
-                    <StarIcon className="w-4 h-4 text-primary fill-primary" />
+                    <StarIcon className="w-4 h-4 text-fuchsia-500 fill-fuchsia-400" />
                     {movie.rating ? movie.rating.toFixed(1) : "N/A"}
                   </p>
                   <p>{movie.votes ? kConverter(movie.votes) : 0} votes</p>
@@ -146,10 +146,10 @@ const handleAddShow = async () => {
                 )}
               </div>
 
-              <div className="mt-2 space-y-0.5 px-1">
+              <div className="mt-2 space-y-0.5  px-1">
                 <p className="font-medium truncate text-gray-200">{movie.title}</p>
                 <p className="text-gray-400 text-sm flex items-center gap-1">
-                  <CalendarDays className="w-4 h-4 text-primary/70" />
+                  <CalendarDays className="w-4 h-4 text-rose-400" />
                   {movie.released}
                 </p>
               </div>

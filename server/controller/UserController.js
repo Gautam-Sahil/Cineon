@@ -43,7 +43,7 @@ try {
       }
 
       await clerkClient.users.updateUserMetadata(userId, {privateMetadata: user.privateMetadata})
-      res.json({ success: true, message: "Favourite movies updated uccedfully"})
+      res.json({ success: true, message: "Favourite movies updated successfully"})
 } catch (error) {
      console.error(error.message);
         res.json({success: false, message: error.message})

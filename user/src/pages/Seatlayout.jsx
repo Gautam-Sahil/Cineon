@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { assets } from '../assets/assets'
+import screenImage from '../assets/screenImage.svg'
 import Loading from '../components/Loading'
 import { ClockIcon } from 'lucide-react'
 import isoTimeFormat from '../library/isoTimeFormat'
@@ -85,7 +85,7 @@ const Seatlayout = () => {
             try {
               if(!user) return toast.error('please login first to proceed')
 
-                if(!selectedTime || !selectedSeats.length) return toast.error('please sealect t9ime n seats');
+                if(!selectedTime || !selectedSeats.length) return toast.error('please sealect time and seats');
 
                 const {data} = await axios.post('/api/bookings/create', {showId: selectedTime.showId, selectedSeats},  {
           headers: {
@@ -94,7 +94,7 @@ const Seatlayout = () => {
         })
 
         if (data.success){
-          toast.success(data.message)
+          toast.loading("Redirecting to payment gateway...")
          window.location.href = data.url;
         }else{
           toast.error(data.message)
@@ -132,7 +132,7 @@ const Seatlayout = () => {
        <BlueCircle top='-100px' left='-100px'/>
          <BlueCircle top='0px' left='0px'/>
          <h1 className='text-2xl font-semibold mb-4'>Select your seat</h1>
-         <img src={assets.screenImage} alt="Screen" />
+         <img src={screenImage} alt="Screen" />
          <p className='text-gray-400 text-sm mb-6 '>SCREEN SIDE</p>
          <div className='flex flex-col items-center mt-10 text-xs text-gray-300 '>
            <div className='grid grid-cols-2 md:grid-cols-1 gap-8 md:gap-2 mb-6'>

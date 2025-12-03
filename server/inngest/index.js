@@ -231,7 +231,7 @@ const bookingEmailHandler = inngest.createFunction(
 
     // Common HTML header/footer
     const htmlHeader = `<div style="font-family: Arial, sans-serif; max-width: 600px; margin:auto;">`;
-    const htmlFooter = `<p style="color: gray; font-size: 12px;">This is an automated email from Movie Ticket Booking App. Do not reply.</p></div>`;
+    const htmlFooter = `<p style="color: gray; font-size: 12px;">This is an automated email from Cinion App. Do not reply.</p></div>`;
 
     // ----------------------
     // 1️⃣ Pending payment email + Auto-check scheduling

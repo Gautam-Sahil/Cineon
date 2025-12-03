@@ -12,7 +12,7 @@ const MovieCard = ({ movie }) => {
   const voteAverage = movie?.rating ? movie.rating.toFixed(1) : 'N/A';
 
   return (
-    <div className='flex flex-col justify-between p-3 bg-gray-800 rounded-2xl hover:-translate-y-1 transition duration-300 w-66'>
+    <div className='flex flex-col justify-between p-3 bg-teal-950 rounded-2xl hover:-translate-y-1 transition duration-300 w-66'>
       <img
         onClick={() => { navigate(`/movies/${movie._id}`); scrollTo(0, 0) }}
         src={movie.backdrop}
@@ -34,7 +34,7 @@ const MovieCard = ({ movie }) => {
         </button>
 
         <p className='flex items-center gap-1 text-sm text-gray-400 mt-1 pr-1'>
-          <StarIcon className='w-4 h-4 text-primary fill-primary' /> {voteAverage}
+          <StarIcon className='w-4 h-4 text-amber-500 fill-amber-600' /> {voteAverage}
         </p>
       </div>
     </div>

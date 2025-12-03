@@ -94,7 +94,7 @@ const fetchDashboardData = async () => {
               hover:-translate-y-1 hover:shadow-md transition duration-300`}
           >
             <div>
-              <h1 className="text-sm font-medium text-gray-600">{card.title}</h1>
+              <h1 className="text-sm font-medium text-gray-400">{card.title}</h1>
               <p className="text-2xl font-semibold mt-1">{card.value}</p>
             </div>
             <card.icon className="w-8 h-8 opacity-80" />
@@ -103,11 +103,11 @@ const fetchDashboardData = async () => {
       </div>
 
       {/* === ACTIVE SHOWS === */}
-      <p className="mt-10 text-lg font-semibold text-gray-700">Active Shows</p>
+      <p className="mt-10 text-lg font-semibold text-gray-300">Active Shows</p>
       <div className="relative flex flex-wrap gap-6 mt-4 max-w-6xl">
         <BlueCircle top="100px" left="-10%" />
        {DashboardData.activeShows.length === 0 ? (
-  <p className="text-gray-500 mt-4">No active shows available.</p>
+  <p className="text-gray-400 mt-4">No active shows available.</p>
 ) : (
   DashboardData.activeShows.map((show) => {
     const movie = show.movie;
@@ -115,8 +115,8 @@ const fetchDashboardData = async () => {
     return (
       <div
         key={show._id || movie?.trakt_id}
-        className="w-56 rounded-lg overflow-hidden bg-gradient-to-br from-primary/10 to-primary/5 
-        border border-primary/20 hover:-translate-y-1 hover:shadow-md transition duration-300"
+        className="w-56 rounded-lg overflow-hidden bg-gradient-to-br from-primary/30 to-primary/10 
+        border border-primary/50 hover:-translate-y-1 hover:shadow-md transition duration-300"
       >
         {/* Movie Poster */}
         <img
@@ -136,7 +136,7 @@ const fetchDashboardData = async () => {
             </p>
             <p className="flex items-center gap-1 text-sm text-gray-500">
               <StarIcon className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-              {movie?.votes?.toFixed(0) || "N/A"}
+              {movie?.votes?.toFixed(1) || "N/A"}
             </p>
           </div>
 

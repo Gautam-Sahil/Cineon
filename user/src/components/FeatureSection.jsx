@@ -43,7 +43,7 @@ const FeatureSection = () => {
         <div className="button-bg1 rounded-md p-0.5 hover:scale-105 transition duration-300 active:scale-100">
           <button 
             onClick={() => {navigate('/movies'); scrollTo(0,0)}} 
-            className="px-10 text-sm py-3 text-white rounded-md font-medium bg-gray-800 hover:bg-primary-dull transition cursor-pointer"
+            className="px-10 text-sm py-3 text-white rounded-md font-medium bg-green-950 hover:bg-primary-dull transition cursor-pointer"
           >
             Show More
           </button>

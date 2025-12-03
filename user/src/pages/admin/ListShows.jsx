@@ -110,7 +110,7 @@ const ListShows = () => {
           </p>
           <p className="flex items-center gap-1">
             <StarIcon className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-            {movie.votes?.toFixed(0) || "N/A"}
+            {movie.votes?.toFixed(1) || "N/A"}
           </p>
         </div>
 
