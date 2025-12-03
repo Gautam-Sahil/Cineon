@@ -6,7 +6,7 @@ import { ClockIcon } from 'lucide-react'
 import isoTimeFormat from '../library/isoTimeFormat'
 import BlueCircle from '../components/BlueCircle'
 import { toast } from 'sonner';
-import { useAppContext } from './context/AppContext'
+import { useAppContext } from '../context/AppContext'
 
 const Seatlayout = () => {
   

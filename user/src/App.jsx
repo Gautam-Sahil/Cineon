@@ -21,7 +21,7 @@ import Dashboards from "./pages/admin/Dashboards";
 import AddShow from "./pages/admin/AddShow";
 import ListShows from "./pages/admin/ListShows";
 import ListBooking from "./pages/admin/ListBooking";
-import { useAppContext } from "./context/AppContext";
+import { useAppContext } from "../context/AppContext";
 import { SignIn } from "@clerk/clerk-react";
 import Loading from "./components/Loading";
 import Release from "./pages/Release";

@@ -3,7 +3,7 @@ import React from 'react'
 import { useNavigate } from 'react-router-dom';
 import BlueCircle from './BlueCircle';
 import MovieCard from './MovieCard';
-import { useAppContext } from './context/AppContext'
+import { useAppContext } from '../context/AppContext'
 
 const FeatureSection = () => {
   const { shows } = useAppContext();
