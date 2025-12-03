@@ -2,7 +2,7 @@ import React from 'react'
 
 import MovieCard from '../components/MovieCard'
 import BlueCircle from './../components/BlueCircle';
-import { useAppContext } from './context/AppContext'
+import { useAppContext } from '../context/AppContext'
 const Movies = () => {
 
 
