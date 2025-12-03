@@ -3,7 +3,7 @@ import Loading from '../components/Loading';
 import BlueCircle from '../components/BlueCircle';
 import timeFormat from '../library/timeFormat';
 import { dateFormat } from '../library/dateFormat';
-import { useAppContext } from './context/AppContext'
+import { useAppContext } from '../context/AppContext'
 import { Link } from 'react-router-dom';
 
 const MyBookings = () => {
