@@ -1,14 +1,13 @@
 # 🎬 Cinion - Movie Ticket Booking App
 
-![Cinion Banner]<img width="1919" height="871" alt="Screenshot 2025-12-04 135908" src="https://github.com/user-attachments/assets/a34ca985-1008-40af-b7ea-84af76488524" />
+<img width="1919" height="871" alt="Screenshot 2025-12-04 135908" src="https://github.com/user-attachments/assets/a34ca985-1008-40af-b7ea-84af76488524" />
 
-*(Replace this link with a screenshot of your app's homepage)*
 
 
 **Cinion** is a full-stack MERN movie ticket booking application. It provides a seamless experience for users to browse movies, watch trailers, select seats in real-time, and book tickets using secure payments. It features a robust admin dashboard, automated email notifications, and background job processing for managing booking timeouts.
 
 ## 🚀 Live Demo
-[[Insert Live Link Here](https://cineon.vercel.app/)]
+[(https://cineon.vercel.app/)]
 
 ---
 
@@ -72,20 +71,5 @@
     * **Timeout/Failure:** Inngest timer ends -> Checks status -> Releases seats -> Sends "Cancelled" email.
 
 ---
-
-## ⚙️ Installation & Setup
-
-Follow these steps to run the project locally.
-
-### Prerequisites
-* Node.js installed
-* MongoDB URI
-* Clerk Account
-* Stripe Account
-* TMDB/Trakt API Keys
-* Brevo SMTP Credentials
-
-### 1. Clone the Repository
-```bash
-git clone [https://github.com/yourusername/cinion.git](https://github.com/yourusername/cinion.git)
+e [https://github.com/yourusername/cinion.git](https://github.com/yourusername/cinion.git)
 cd cinion
