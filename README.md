@@ -73,3 +73,5 @@
     * **Timeout/Failure:** Inngest timer ends -> Checks status -> Releases seats -> Sends "Cancelled" email.
 
 ---
+
+Developed with ❤️ by [Gautam Tiwari]
