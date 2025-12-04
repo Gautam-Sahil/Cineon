@@ -7,7 +7,9 @@
 **Cinion** is a full-stack MERN movie ticket booking application. It provides a seamless experience for users to browse movies, watch trailers, select seats in real-time, and book tickets using secure payments. It features a robust admin dashboard, automated email notifications, and background job processing for managing booking timeouts.
 
 ## 🚀 Live Demo
-[(https://cineon.vercel.app/)]
+[Live Demo](https://cineon.vercel.app/)
+
+
 
 ---
 
@@ -71,5 +73,3 @@
     * **Timeout/Failure:** Inngest timer ends -> Checks status -> Releases seats -> Sends "Cancelled" email.
 
 ---
-e [https://github.com/yourusername/cinion.git](https://github.com/yourusername/cinion.git)
-cd cinion
